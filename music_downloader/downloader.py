@@ -3,9 +3,12 @@ Downloader Module - Engine download musik MP3 & MP4 pakai yt-dlp
 """
 
 import os
+import re
 import sys
 import threading
 import yt_dlp
+from urllib.parse import urlparse
+
 
 
 def get_ffmpeg_dir():
@@ -102,37 +105,45 @@ class MusicDownloader:
         elif status == 'error':
             callback("error", 0, "❌ Error saat download")
 
+    @staticmethod
+    def validate_url(url):
+        """Validasi URL sebelum proses download."""
+        value = (url or '').strip()
+        parsed = urlparse(value)
+        if not value:
+            return False, 'URL masih kosong. Paste URL video terlebih dahulu.'
+        if parsed.scheme not in ('http', 'https') or not parsed.netloc:
+            return False, 'URL tidak valid. Gunakan URL lengkap yang diawali http:// atau https://.'
+        return True, ''
+
     def search(self, query, max_results=10):
         """Search video/musik dari YouTube."""
-        try:
-            ydl_opts = {
-                'quiet': True,
-                'no_warnings': True,
-                'extract_flat': True,
-                'default_search': f'ytsearch{max_results}',
-            }
+        query = (query or '').strip()
+        if not query:
+            raise ValueError('Kata pencarian masih kosong.')
 
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                result = ydl.extract_info(query, download=False)
+        search_query = query if re.match(r'^ytsearch\\d*:', query, re.IGNORECASE) else f'ytsearch{max_results}:{query}'
+        ydl_opts = {
+            'quiet': True,
+            'no_warnings': True,
+            'extract_flat': True,
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            result = ydl.extract_info(search_query, download=False)
 
-                if 'entries' in result:
-                    entries = []
-                    for entry in result['entries']:
-                        if entry:
-                            entries.append({
-                                'id': entry.get('id', ''),
-                                'title': entry.get('title', 'Unknown'),
-                                'url': entry.get('url', '') or f"https://www.youtube.com/watch?v={entry.get('id', '')}",
-                                'duration': entry.get('duration', 0),
-                                'channel': entry.get('channel', '') or entry.get('uploader', 'Unknown'),
-                                'thumbnail': entry.get('thumbnail', ''),
-                            })
-                    return entries
-                return []
-
-        except Exception as e:
-            print(f"Search error: {e}")
-            return []
+        entries = []
+        for entry in (result.get('entries') or []):
+            if entry:
+                video_id = entry.get('id', '')
+                entries.append({
+                    'id': video_id,
+                    'title': entry.get('title', 'Unknown'),
+                    'url': entry.get('url', '') or f'https://www.youtube.com/watch?v={video_id}',
+                    'duration': entry.get('duration', 0),
+                    'channel': entry.get('channel', '') or entry.get('uploader', 'Unknown'),
+                    'thumbnail': entry.get('thumbnail', ''),
+                })
+        return entries
 
     def download_mp3(self, url, callback=None):
         """Download sebagai MP3 (audio only)."""

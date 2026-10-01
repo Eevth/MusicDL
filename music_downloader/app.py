@@ -654,10 +654,26 @@ class App(ctk.CTk):
         self.search_btn.configure(state="disabled", text="...")
 
         def _worker():
-            results = self.downloader.search(query, max_results=8)
-            self.after(0, lambda: self._show_results(results))
+            try:
+                results = self.downloader.search(query, max_results=8)
+                self.after(0, lambda: self._show_results(results))
+            except Exception as error:
+                self.after(0, lambda: self._show_search_error(str(error)))
 
         threading.Thread(target=_worker, daemon=True).start()
+
+    def _show_search_error(self, error):
+        for widget in self.results_scroll.winfo_children():
+            widget.destroy()
+        self.search_btn.configure(state='normal', text='Cari')
+        self.results_count_label.configure(text='Error pencarian')
+        error_label = ctk.CTkLabel(
+            self.results_scroll,
+            text=f'⚠️ Pencarian gagal:\n{error}',
+            font=('Segoe UI', 13), text_color=COLORS['error'],
+            justify='center', wraplength=560
+        )
+        error_label.grid(row=0, column=0, pady=40, padx=20)
 
     def _show_results(self, results):
         # Clear loading
@@ -691,8 +707,9 @@ class App(ctk.CTk):
 
     def _download_url(self, format_type):
         url = self.url_entry.get().strip()
-        if not url:
-            messagebox.showwarning("URL Kosong", "Paste URL dulu bro!")
+        valid, error = self.downloader.validate_url(url)
+        if not valid:
+            messagebox.showwarning('URL Tidak Valid', error)
             return
 
         if format_type == "mp3":
@@ -703,6 +720,10 @@ class App(ctk.CTk):
     def _start_download_mp3(self, data):
         title = data.get('title', 'Unknown')
         url = data.get('url', '')
+        valid, error = self.downloader.validate_url(url)
+        if not valid:
+            messagebox.showwarning('URL Tidak Valid', error)
+            return
 
         # Auto switch to downloads page
         self._nav_click("downloads")
@@ -730,6 +751,10 @@ class App(ctk.CTk):
         title = data.get('title', 'Unknown')
         url = data.get('url', '')
         quality = self.quality_var.get()
+        valid, error = self.downloader.validate_url(url)
+        if not valid:
+            messagebox.showwarning('URL Tidak Valid', error)
+            return
 
         # Auto switch to downloads page
         self._nav_click("downloads")
