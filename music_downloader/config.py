@@ -1,6 +1,6 @@
 # App Configuration
 APP_NAME = "MusicDL"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 
 # Isi ini NANTI setelah lo bikin repo GitHub.
 # Bisa juga diisi dari menu Pengaturan di aplikasi.

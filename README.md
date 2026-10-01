@@ -2,7 +2,7 @@
 
 Aplikasi Windows native untuk download musik MP3 & MP4 dari YouTube.
 
-![MusicDL](https://img.shields.io/badge/MusicDL-v1.0.0-e94560?style=for-the-badge)
+![MusicDL](https://img.shields.io/badge/MusicDL-v1.0.1-e94560?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python)
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D4?style=for-the-badge&logo=windows)
 
@@ -33,7 +33,7 @@ python main.py
 # Build executable
 python build.py
 
-# Output: dist/MusicDL_v1.0.0.exe
+# Output: dist/MusicDL_v1.0.1.exe
 ```
 
 ## 📦 Sistem Update
